@@ -10,6 +10,8 @@ from sqlalchemy import text
 from app.core.configs import configs
 
 DATABASE_URL = configs.get("database_url")
+if DATABASE_URL is None:
+    raise ValueError("database_url is not set in configurations")
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 
