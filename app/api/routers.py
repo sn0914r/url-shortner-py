@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
-from app.modules.links import schemas, services
+from app.api import schemas, services
 from fastapi.responses import RedirectResponse
 
 router = APIRouter(prefix="/link", tags=["Links"])
@@ -10,9 +10,21 @@ router = APIRouter(prefix="/link", tags=["Links"])
 @router.post(
     "/", response_model=schemas.URLResponse, status_code=status.HTTP_201_CREATED
 )
-async def create_url(url_data: schemas.URLCreate, db: AsyncSession = Depends(get_db)):
-    new_url = await services.create_short_url(db, str(url_data.long_url))
-    return new_url
+async def create_url(url_data: schemas.URLCreate, request: Request, db: AsyncSession = Depends(get_db)):
+    new_url = await services.create_short_url(
+        db, str(url_data.long_url), expires_at=url_data.expires_at
+    )
+    base_url = str(request.base_url)
+    short_url = f"{base_url}link/{new_url.short_code}"
+    
+    return {
+        "id": new_url.id,
+        "short_code": new_url.short_code,
+        "short_url": short_url,
+        "long_url": new_url.long_url,
+        "created_at": new_url.created_at,
+        "expires_at": new_url.expires_at
+    }
 
 
 @router.get("/{short_code}")
