@@ -1,9 +1,7 @@
 from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.core.database import get_db
 from app.modules.links import schemas, services
-
 from fastapi.responses import RedirectResponse
 
 router = APIRouter(prefix="/link", tags=["Links"])
@@ -28,3 +26,9 @@ async def redirect_to_url(
         db, short_code, ip_address=ip, user_agent=user_agent
     )
     return RedirectResponse(url=long_url)
+
+
+@router.get("/{short_code}/stats", response_model=schemas.ClickStats)
+async def get_stats(short_code: str, db: AsyncSession = Depends(get_db)):
+    stats = await services.get_url_stats(db, short_code)
+    return stats

@@ -14,3 +14,10 @@ class URLResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ClickStats(BaseModel):
+    total_clicks: int
+    browsers: dict[str, int]
+    ips: dict[str, int]
+    timeline: dict[str, int]
